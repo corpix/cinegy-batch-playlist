@@ -34,7 +34,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="creatPlaylistButton" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="jScrollPane1" alignment="0" max="32767" attributes="0"/>
+                  <Component id="playlistTableScrollPane" alignment="0" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -44,7 +44,7 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jScrollPane1" pref="471" max="32767" attributes="0"/>
+              <Component id="playlistTableScrollPane" pref="471" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jSeparator1" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
@@ -77,14 +77,14 @@
         <Property name="text" type="java.lang.String" value="&#x41f;&#x435;&#x440;&#x435;&#x442;&#x430;&#x449;&#x438;&#x442;&#x435; &#x432;&#x438;&#x434;&#x435;&#x43e;-&#x444;&#x430;&#x439;&#x43b;&#x44b; &#x432; &#x442;&#x430;&#x431;&#x43b;&#x438;&#x446;&#x443;"/>
       </Properties>
     </Component>
-    <Container class="javax.swing.JScrollPane" name="jScrollPane1">
+    <Container class="javax.swing.JScrollPane" name="playlistTableScrollPane">
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
         <Component class="javax.swing.JTable" name="playlistTable">
           <Properties>
             <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="new javax.swing.table.DefaultTableModel(&#xa;    new Object [][] {&#xa;        {null, null, null},&#xa;        {null, null, null},&#xa;        {null, null, null},&#xa;        {null, null, null},&#xa;        {null, null, null},&#xa;        {null, null, null},&#xa;        {null, null, null},&#xa;        {null, null, null},&#xa;        {null, null, null},&#xa;        {null, null, null},&#xa;        {null, null, null},&#xa;        {null, null, null},&#xa;        {null, null, null},&#xa;        {null, null, null},&#xa;        {null, null, null}&#xa;    },&#xa;    new String [] {&#xa;        &quot;&#x418;&#x43c;&#x44f;&quot;, &quot;&#x414;&#x43b;&#x438;&#x43d;&#x43d;&#x430;(&#x43c;&#x438;&#x43b;&#x438;&#x441;&#x435;&#x43a;)&quot;, &quot;&#x41f;&#x443;&#x442;&#x44c;&quot;&#xa;    }&#xa;)" type="code"/>
+              <Connection code="playlistTableModel" type="code"/>
             </Property>
           </Properties>
           <AuxValues>

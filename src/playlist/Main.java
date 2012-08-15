@@ -14,14 +14,27 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.table.DefaultTableModel;
+        
+        
+
 public class Main extends javax.swing.JFrame {
-    private int currentRow = 0;
+    private DefaultTableModel playlistTableModel;
+    
     /** Creates new form Main */
     public Main() {
-        initComponents();
+        playlistTableModel = new javax.swing.table.DefaultTableModel(
+            new Object [][] { },
+            new String [] {
+                "Путь", "Длинна(милисек)"
+            }
+        );
+        
+        initComponents(); // Requires playlistTableModel to be defined
+        
         creatPlaylistButton.setEnabled(false);
         
-        playlistTable.setDropTarget(new DropTarget(){
+        playlistTableScrollPane.setDropTarget(new DropTarget(){
             @Override
             public synchronized void drop(DropTargetDropEvent dtde) {
                 //Point point = dtde.getLocation();
@@ -43,22 +56,14 @@ public class Main extends javax.swing.JFrame {
                 File f;
                 for (int i = 0; i < fileList.size(); i++){
                     f = (File)fileList.get(i);
-                    playlistTable.setValueAt(f.getAbsolutePath(), currentRow, 1);
-                    playlistTable.setValueAt(f.length(), currentRow, 0);
-                    currentRow++;
+                    playlistTableModel.insertRow(playlistTableModel.getRowCount(), new Object[]{
+                        f.getAbsolutePath(), f.length()
+                    });
                 }
                 
                 creatPlaylistButton.setEnabled(true);
             }
         });
-    }
-
-    private void clearTable(final javax.swing.JTable table) {
-        for (int i = 0; i < table.getRowCount(); i++) {
-            for(int j = 0; j < table.getColumnCount(); j++) {
-                table.setValueAt("", i, j);
-            }
-        }
     }
 
     /** This method is called from within the constructor to
@@ -72,7 +77,7 @@ public class Main extends javax.swing.JFrame {
         creatPlaylistButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
         dropVideoNotify = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        playlistTableScrollPane = new javax.swing.JScrollPane();
         playlistTable = new javax.swing.JTable();
         cleanupButton = new javax.swing.JButton();
 
@@ -89,29 +94,8 @@ public class Main extends javax.swing.JFrame {
         dropVideoNotify.setForeground(new java.awt.Color(148, 148, 148));
         dropVideoNotify.setText("Перетащите видео-файлы в таблицу");
 
-        playlistTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null}
-            },
-            new String [] {
-                "Имя", "Длинна(милисек)", "Путь"
-            }
-        ));
-        jScrollPane1.setViewportView(playlistTable);
+        playlistTable.setModel(playlistTableModel);
+        playlistTableScrollPane.setViewportView(playlistTable);
 
         cleanupButton.setText("Очистить");
         cleanupButton.addActionListener(new java.awt.event.ActionListener() {
@@ -134,14 +118,14 @@ public class Main extends javax.swing.JFrame {
                         .add(dropVideoNotify)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(creatPlaylistButton))
-                    .add(jScrollPane1))
+                    .add(playlistTableScrollPane))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 471, Short.MAX_VALUE)
+                .add(playlistTableScrollPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 471, Short.MAX_VALUE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jSeparator1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
@@ -161,8 +145,9 @@ public class Main extends javax.swing.JFrame {
 
     private void cleanupButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cleanupButtonActionPerformed
         creatPlaylistButton.setEnabled(false);
-        this.clearTable(playlistTable);
-        currentRow = 0;
+        while(playlistTableModel.getRowCount() > 0) {
+            playlistTableModel.removeRow(0);
+        }
     }//GEN-LAST:event_cleanupButtonActionPerformed
     
     /**
@@ -204,10 +189,10 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JButton cleanupButton;
     private javax.swing.JButton creatPlaylistButton;
     private javax.swing.JLabel dropVideoNotify;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTable playlistTable;
+    private javax.swing.JScrollPane playlistTableScrollPane;
     // End of variables declaration//GEN-END:variables
     
 }
