@@ -1,47 +1,52 @@
 package playlist;
 
-import java.awt.BorderLayout;
-import java.awt.Point;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
-import java.awt.dnd.DnDConstants;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.util.List;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.swing.table.DefaultTableModel;
+import playlist.mediainfo.MediaInfo;
         
         
 
 public class Main extends javax.swing.JFrame {
     private DefaultTableModel playlistTableModel;
+    public TVFormat TVFormatInstance;
+    private Pair<Integer, String> currentTVFormat;
+    private Boolean hasDropTarget = false;
     
     /** Creates new form Main */
     public Main() {
-        playlistTableModel = new javax.swing.table.DefaultTableModel(
+        playlistTableModel = new DefaultTableModel(
             new Object [][] { },
             new String [] {
-                "Путь", "Длинна(милисек)"
+                "Path", "Format", "BitRate(Mb/sec)", "Framerate", "Aspect ratio", "Duration", "TV Format"
             }
         );
         
         initComponents(); // Requires playlistTableModel to be defined
-        
         creatPlaylistButton.setEnabled(false);
         
+        TVFormatInstance = TVFormat.getInstance(this);
+    }
+    
+    private int setDropTarget() {
+        if (hasDropTarget) {
+            return 0;
+        }
+        
+        hasDropTarget = true;
         playlistTableScrollPane.setDropTarget(new DropTarget(){
             @Override
             public synchronized void drop(DropTargetDropEvent dtde) {
-                //Point point = dtde.getLocation();
-                //int column = playlistTable.columnAtPoint(point);
-                //int row = playlistTable.rowAtPoint(point);
-                // handle drop inside current table
-                
                 dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
                 Transferable t = dtde.getTransferable();
                 List fileList = null;
@@ -54,18 +59,68 @@ public class Main extends javax.swing.JFrame {
                 }
                 
                 File f;
+                String absolutePath;
+                
                 for (int i = 0; i < fileList.size(); i++){
                     f = (File)fileList.get(i);
-                    playlistTableModel.insertRow(playlistTableModel.getRowCount(), new Object[]{
-                        f.getAbsolutePath(), f.length()
-                    });
+                    absolutePath = f.getAbsolutePath();
+                    
+                    playlistTableModel.insertRow(playlistTableModel.getRowCount(), getVideoData(absolutePath));
                 }
                 
                 creatPlaylistButton.setEnabled(true);
             }
         });
+        
+        return 0;
     }
+    
+    private Object[] getVideoData(String path){
+        File file = new File(path);
+        MediaInfo info = new MediaInfo();
+        
+        info.open(file);
 
+        String format = info.get("Format");
+        
+        Float bitRate;
+        bitRate = Float.parseFloat(info.get("BitRate")) / 1000000;
+        
+        String frameRate = info.get("FrameRate");
+        Float aspectRatio = Float.parseFloat(info.get("AspectRatio"));
+        
+        BigInteger duration;
+        duration = new BigInteger(info.get("Duration"));
+        
+        String microduration;
+        microduration = String.valueOf(duration.multiply(new BigInteger("10000000")));
+        
+        info.close();
+        info.dispose();
+        
+        return new Object[]{ path, format, bitRate, frameRate, aspectRatio, microduration, currentTVFormat.getSecond() };
+    }
+    
+    
+    /*
+     * TVFormat related
+     */
+    
+    public Pair<Integer, String> getTVFormat(){
+        return currentTVFormat;
+    }
+    
+    public void setTVFormat(Pair<Integer, String> TVFormat){
+        currentTVFormat = TVFormat;
+        setDropTarget();
+    }
+    
+    public void showTVFormatFrame(){
+        TVFormatInstance.setLocationRelativeTo(this);
+        TVFormatInstance.setVisible(true);
+    }
+    
+    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -80,6 +135,7 @@ public class Main extends javax.swing.JFrame {
         playlistTableScrollPane = new javax.swing.JScrollPane();
         playlistTable = new javax.swing.JTable();
         cleanupButton = new javax.swing.JButton();
+        TVFormatButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Batch ingest playlist creator");
@@ -104,6 +160,13 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
+        TVFormatButton.setText("Формат...");
+        TVFormatButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                TVFormatButtonActionPerformed(evt);
+            }
+        });
+
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -118,14 +181,19 @@ public class Main extends javax.swing.JFrame {
                         .add(dropVideoNotify)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(creatPlaylistButton))
-                    .add(playlistTableScrollPane))
+                    .add(playlistTableScrollPane)
+                    .add(layout.createSequentialGroup()
+                        .add(TVFormatButton, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 150, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .add(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(playlistTableScrollPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 471, Short.MAX_VALUE)
+                .add(TVFormatButton)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(playlistTableScrollPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 436, Short.MAX_VALUE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jSeparator1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
@@ -150,6 +218,10 @@ public class Main extends javax.swing.JFrame {
             playlistTableModel.removeRow(rows--);
         }
     }//GEN-LAST:event_cleanupButtonActionPerformed
+
+    private void TVFormatButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TVFormatButtonActionPerformed
+        showTVFormatFrame();
+    }//GEN-LAST:event_TVFormatButtonActionPerformed
     
     /**
      * @param args the command line arguments
@@ -181,16 +253,19 @@ public class Main extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Main().setVisible(true);
+                Main main = new Main();
+                main.setLocationRelativeTo(null);
+                main.setVisible(true);
+                main.showTVFormatFrame();
             }
         });
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton TVFormatButton;
     private javax.swing.JButton cleanupButton;
     private javax.swing.JButton creatPlaylistButton;
     private javax.swing.JLabel dropVideoNotify;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTable playlistTable;
     private javax.swing.JScrollPane playlistTableScrollPane;
