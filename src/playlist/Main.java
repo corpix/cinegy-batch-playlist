@@ -145,8 +145,9 @@ public class Main extends javax.swing.JFrame {
 
     private void cleanupButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cleanupButtonActionPerformed
         creatPlaylistButton.setEnabled(false);
-        while(playlistTableModel.getRowCount() > 0) {
-            playlistTableModel.removeRow(0);
+        int rows = playlistTableModel.getRowCount() - 1;
+        while(rows >= 0) {
+            playlistTableModel.removeRow(rows--);
         }
     }//GEN-LAST:event_cleanupButtonActionPerformed
     
