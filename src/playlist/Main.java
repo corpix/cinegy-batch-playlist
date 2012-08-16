@@ -1,5 +1,7 @@
 package playlist;
 
+import com.thoughtworks.xstream.*;
+import com.thoughtworks.xstream.io.xml.StaxDriver;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -12,14 +14,12 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.table.DefaultTableModel;
-import playlist.mediainfo.MediaInfo;
-import playlist.xml.*;
-import com.thoughtworks.xstream.*;
-import com.thoughtworks.xstream.io.xml.StaxDriver;
 import javax.swing.JFileChooser;
 import javax.swing.JRadioButton;
+import javax.swing.table.DefaultTableModel;
 import org.apache.commons.io.FileUtils;
+import playlist.mediainfo.MediaInfo;
+import playlist.xml.*;
         
         
 
@@ -32,7 +32,9 @@ public class Main extends javax.swing.JFrame {
     private XStream xstream = new XStream(new StaxDriver());
     
     /** Creates new form Main */
-    public Main() {
+    public Main() throws Exception {
+        System.out.print(System.getProperty("os.name") + "_" + System.getProperty("os.arch"));
+        setJnaLibraryPath();
         xstream.alias("Cinegy", Cinegy.class);
         xstream.alias("BatchIngestList", BatchIngestList.class);
         xstream.alias("CinegyItem", CinegyItem.class);
@@ -47,6 +49,18 @@ public class Main extends javax.swing.JFrame {
         initComponents(); // Requires playlistTableModel to be defined
         creatPlaylistButton.setEnabled(false);
         TVFormatInstance = TVFormat.getInstance(this);
+    }
+    
+    private void setJnaLibraryPath() throws Exception {
+        String path = System.getProperty("jna.library.path");
+        String sep = System.getProperty("file.separator");
+        String libFolder = System.getProperty("os.name") + "_" + System.getProperty("os.arch");
+        
+        if(path == null){
+            throw new Exception("jna.library.path is empty!");
+        }
+        
+        System.setProperty("jna.library.path", path + sep + libFolder);
     }
     
     private int setDropTarget() {
@@ -266,11 +280,11 @@ public class Main extends javax.swing.JFrame {
             for (int column = 0; column < columnCount; column++){
                 switch(column){
                     case 0: {
-                        cinegyItem.Source = (String)playlistTableModel.getValueAt(row, column);;
+                        cinegyItem.Source = (String)playlistTableModel.getValueAt(row, column);
                         break;
                     }
                     case 5: {
-                        cinegyItem.TimeDuration = (String)playlistTableModel.getValueAt(row, column);;
+                        cinegyItem.TimeDuration = (String)playlistTableModel.getValueAt(row, column);
                         break;
                     }
                     case 6: {
@@ -295,6 +309,7 @@ public class Main extends javax.swing.JFrame {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
         
+        creatPlaylistButton.setEnabled(true);
     }//GEN-LAST:event_creatPlaylistButtonActionPerformed
 
     private void cleanupButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cleanupButtonActionPerformed
@@ -339,10 +354,15 @@ public class Main extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                Main main = new Main();
-                main.setLocationRelativeTo(null);
-                main.setVisible(true);
-                main.showTVFormatFrame();
+                Main main;
+                try {
+                    main = new Main();
+                    main.setLocationRelativeTo(null);
+                    main.setVisible(true);
+                    main.showTVFormatFrame();
+                } catch (Exception ex) {
+                    Logger.getLogger(Main.class.getName()).log(Level.WARNING, null, ex);
+                }
             }
         });
     }
