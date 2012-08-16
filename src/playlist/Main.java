@@ -2,6 +2,7 @@ package playlist;
 
 import com.thoughtworks.xstream.*;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
+import com.thoughtworks.xstream.io.xml.StaxWriter;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -17,6 +18,8 @@ import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JRadioButton;
 import javax.swing.table.DefaultTableModel;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.apache.commons.io.FileUtils;
 import playlist.mediainfo.MediaInfo;
 import playlist.xml.*;
@@ -29,7 +32,11 @@ public class Main extends javax.swing.JFrame {
     private Pair<Integer, String> currentTVFormat;
     private Boolean hasDropTarget = false;
     
-    private XStream xstream = new XStream(new StaxDriver());
+    private XStream xstream = new XStream(new StaxDriver(){
+        public StaxWriter createStaxWriter(XMLStreamWriter out) throws XMLStreamException { 
+            return createStaxWriter(out, false); 
+        }
+    });
     
     /** Creates new form Main */
     public Main() throws Exception {
@@ -320,7 +327,7 @@ public class Main extends javax.swing.JFrame {
             
             cinegy.BatchIngestList.addItem(cinegyItem);
         }
-        
+
         String xml = xstream.toXML(cinegy);
         
         try {
