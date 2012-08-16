@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JRadioButton;
+import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
 import org.apache.commons.io.FileUtils;
 import playlist.mediainfo.MediaInfo;
@@ -45,7 +46,7 @@ public class Main extends javax.swing.JFrame {
                 "Path", "Format", "BitRate(Mb/sec)", "Framerate", "Aspect ratio", "Duration", "TV Format"
             }
         );
-        
+
         initComponents(); // Requires playlistTableModel to be defined
         creatPlaylistButton.setEnabled(false);
         TVFormatInstance = TVFormat.getInstance(this);
@@ -165,10 +166,15 @@ public class Main extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JSeparator();
         dropVideoNotify = new javax.swing.JLabel();
         playlistTableScrollPane = new javax.swing.JScrollPane();
-        playlistTable = new javax.swing.JTable();
+        playlistTable = new javax.swing.JTable(){
+            public boolean isCellEditable(int rowIndex, int colIndex) {
+                return false; //Disallow the editing of any cell
+            }
+        };
         cleanupButton = new javax.swing.JButton();
         TVFormatButton = new javax.swing.JButton();
         TVFormatLabel = new javax.swing.JLabel();
+        removeFromPlaylistButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Batch ingest playlist creator");
@@ -184,6 +190,11 @@ public class Main extends javax.swing.JFrame {
         dropVideoNotify.setText("Перетащите видео-файлы в таблицу");
 
         playlistTable.setModel(playlistTableModel);
+        playlistTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                playlistTableMouseClicked(evt);
+            }
+        });
         playlistTableScrollPane.setViewportView(playlistTable);
 
         cleanupButton.setText("Очистить");
@@ -199,6 +210,15 @@ public class Main extends javax.swing.JFrame {
                 TVFormatButtonActionPerformed(evt);
             }
         });
+
+        removeFromPlaylistButton.setText("Удалить из плейлиста");
+        removeFromPlaylistButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeFromPlaylistButtonActionPerformed(evt);
+            }
+        });
+
+        removeFromPlaylistButton.setEnabled(false);
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -219,7 +239,8 @@ public class Main extends javax.swing.JFrame {
                         .add(TVFormatButton, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 150, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(TVFormatLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 112, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .add(0, 0, Short.MAX_VALUE)))
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .add(removeFromPlaylistButton, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 224, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -228,7 +249,8 @@ public class Main extends javax.swing.JFrame {
                 .addContainerGap()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(TVFormatButton)
-                    .add(TVFormatLabel))
+                    .add(TVFormatLabel)
+                    .add(removeFromPlaylistButton))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(playlistTableScrollPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 436, Short.MAX_VALUE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
@@ -323,6 +345,22 @@ public class Main extends javax.swing.JFrame {
     private void TVFormatButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TVFormatButtonActionPerformed
         showTVFormatFrame();
     }//GEN-LAST:event_TVFormatButtonActionPerformed
+
+    private void playlistTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_playlistTableMouseClicked
+        int selected = playlistTable.getSelectedRowCount();
+        removeFromPlaylistButton.setEnabled(selected > 0);
+    }//GEN-LAST:event_playlistTableMouseClicked
+
+    private void removeFromPlaylistButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeFromPlaylistButtonActionPerformed
+        int[] selected = playlistTable.getSelectedRows();
+        int row = selected.length - 1;
+        while (row >= 0){
+            playlistTableModel.removeRow(selected[row]);
+            row--;
+        }
+        
+        removeFromPlaylistButton.setEnabled(false);
+    }//GEN-LAST:event_removeFromPlaylistButtonActionPerformed
     
     /**
      * @param args the command line arguments
@@ -376,6 +414,7 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTable playlistTable;
     private javax.swing.JScrollPane playlistTableScrollPane;
+    private javax.swing.JButton removeFromPlaylistButton;
     // End of variables declaration//GEN-END:variables
     
 }
