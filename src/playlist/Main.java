@@ -33,7 +33,6 @@ public class Main extends javax.swing.JFrame {
     
     /** Creates new form Main */
     public Main() throws Exception {
-        System.out.print(System.getProperty("os.name") + "_" + System.getProperty("os.arch"));
         setJnaLibraryPath();
         xstream.alias("Cinegy", Cinegy.class);
         xstream.alias("BatchIngestList", BatchIngestList.class);
