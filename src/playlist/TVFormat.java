@@ -17,7 +17,7 @@ import javax.swing.JRadioButton;
 public class TVFormat extends javax.swing.JFrame {
     private static TVFormat instance = null;
     private Main classParent;
-    private Map<String, Pair<Integer, JRadioButton>> formats;
+    public Map<String, Pair<Integer, JRadioButton>> formats;
     private Set formatsSet;
 
     protected TVFormat(Main parent) {

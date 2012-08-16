@@ -14,6 +14,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
 import playlist.mediainfo.MediaInfo;
+import playlist.xml.*;
+import com.thoughtworks.xstream.*;
+import com.thoughtworks.xstream.io.xml.StaxDriver;
+import javax.swing.JFileChooser;
+import javax.swing.JRadioButton;
+import org.apache.commons.io.FileUtils;
         
         
 
@@ -23,8 +29,14 @@ public class Main extends javax.swing.JFrame {
     private Pair<Integer, String> currentTVFormat;
     private Boolean hasDropTarget = false;
     
+    private XStream xstream = new XStream(new StaxDriver());
+    
     /** Creates new form Main */
     public Main() {
+        xstream.alias("Cinegy", Cinegy.class);
+        xstream.alias("BatchIngestList", BatchIngestList.class);
+        xstream.alias("CinegyItem", CinegyItem.class);
+        
         playlistTableModel = new DefaultTableModel(
             new Object [][] { },
             new String [] {
@@ -34,7 +46,6 @@ public class Main extends javax.swing.JFrame {
         
         initComponents(); // Requires playlistTableModel to be defined
         creatPlaylistButton.setEnabled(false);
-        
         TVFormatInstance = TVFormat.getInstance(this);
     }
     
@@ -60,15 +71,21 @@ public class Main extends javax.swing.JFrame {
                 
                 File f;
                 String absolutePath;
+                Object[] videoData;
                 
-                for (int i = 0; i < fileList.size(); i++){
-                    f = (File)fileList.get(i);
-                    absolutePath = f.getAbsolutePath();
-                    
-                    playlistTableModel.insertRow(playlistTableModel.getRowCount(), getVideoData(absolutePath));
+                try {
+                    for (int i = 0; i < fileList.size(); i++){
+                        f = (File)fileList.get(i);
+                        absolutePath = f.getAbsolutePath();
+                        videoData = getVideoData(absolutePath);
+                        playlistTableModel.insertRow(playlistTableModel.getRowCount(), videoData);
+
+                    }
+
+                    creatPlaylistButton.setEnabled(true);
+                } catch (Exception ex) {
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                
-                creatPlaylistButton.setEnabled(true);
             }
         });
         
@@ -112,6 +129,7 @@ public class Main extends javax.swing.JFrame {
     
     public void setTVFormat(Pair<Integer, String> TVFormat){
         currentTVFormat = TVFormat;
+        TVFormatLabel.setText(TVFormat.getSecond());
         setDropTarget();
     }
     
@@ -136,6 +154,7 @@ public class Main extends javax.swing.JFrame {
         playlistTable = new javax.swing.JTable();
         cleanupButton = new javax.swing.JButton();
         TVFormatButton = new javax.swing.JButton();
+        TVFormatLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Batch ingest playlist creator");
@@ -184,6 +203,8 @@ public class Main extends javax.swing.JFrame {
                     .add(playlistTableScrollPane)
                     .add(layout.createSequentialGroup()
                         .add(TVFormatButton, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 150, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(TVFormatLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 112, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .add(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -191,7 +212,9 @@ public class Main extends javax.swing.JFrame {
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(TVFormatButton)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(TVFormatButton)
+                    .add(TVFormatLabel))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(playlistTableScrollPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 436, Short.MAX_VALUE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
@@ -208,7 +231,70 @@ public class Main extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void creatPlaylistButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_creatPlaylistButtonActionPerformed
-        // TODO add your handling code here:
+        JFileChooser fc;
+        CinegyItem cinegyItem;
+        File file;
+        int rowCount = playlistTableModel.getRowCount();
+        int columnCount = playlistTableModel.getColumnCount();
+        int row, saver;
+        
+        creatPlaylistButton.setEnabled(false);
+        
+        // Save dialog ->
+        fc = new JFileChooser(System.getProperty("user.home"));
+        fc.setSelectedFile(new File("batch.cbi"));
+        fc.setDialogType(1);
+        
+        saver = fc.showSaveDialog(this);
+        
+        if(saver == JFileChooser.CANCEL_OPTION) {
+            return;
+        }
+        
+        file = fc.getSelectedFile();
+        // <- Save dialog
+        
+        Cinegy cinegy = new Cinegy();
+        cinegy.BatchIngestList = new BatchIngestList();
+        cinegy.BatchIngestList.TV_Format = currentTVFormat.getFirst();
+
+        
+        
+        
+        for (row = 0; row < rowCount; row++){
+            cinegyItem = new CinegyItem();
+            for (int column = 0; column < columnCount; column++){
+                switch(column){
+                    case 0: {
+                        cinegyItem.Source = (String)playlistTableModel.getValueAt(row, column);;
+                        break;
+                    }
+                    case 5: {
+                        cinegyItem.TimeDuration = (String)playlistTableModel.getValueAt(row, column);;
+                        break;
+                    }
+                    case 6: {
+                        String value = (String)playlistTableModel.getValueAt(row, column);
+                        Pair<Integer, JRadioButton> pair = (Pair<Integer, JRadioButton>)TVFormatInstance.formats.get(value);
+                        cinegyItem.TV_Format = pair.getFirst();
+                        cinegyItem.Channel = "1|0|3|" + cinegyItem.TV_Format + "|" + cinegyItem.Source + "|0||";
+                        cinegyItem.MediaID = cinegyItem.Channel;
+                        break;
+                    }
+                }
+            }
+            
+            cinegy.BatchIngestList.addItem(cinegyItem);
+        }
+        
+        String xml = xstream.toXML(cinegy);
+        
+        try {
+            FileUtils.writeStringToFile(file, xml);
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
     }//GEN-LAST:event_creatPlaylistButtonActionPerformed
 
     private void cleanupButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cleanupButtonActionPerformed
@@ -263,6 +349,7 @@ public class Main extends javax.swing.JFrame {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton TVFormatButton;
+    private javax.swing.JLabel TVFormatLabel;
     private javax.swing.JButton cleanupButton;
     private javax.swing.JButton creatPlaylistButton;
     private javax.swing.JLabel dropVideoNotify;
