@@ -16,7 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JRadioButton;
-import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
 import org.apache.commons.io.FileUtils;
 import playlist.mediainfo.MediaInfo;
