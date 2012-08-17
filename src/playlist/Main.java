@@ -3,6 +3,7 @@ package playlist;
 import com.thoughtworks.xstream.*;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
 import com.thoughtworks.xstream.io.xml.StaxWriter;
+import com.thoughtworks.xstream.io.xml.XmlFriendlyReplacer;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -32,7 +33,7 @@ public class Main extends javax.swing.JFrame {
     private Pair<Integer, String> currentTVFormat;
     private Boolean hasDropTarget = false;
     
-    private XStream xstream = new XStream(new StaxDriver(){
+    private XStream xstream = new XStream(new StaxDriver(new XmlFriendlyReplacer("__", "_")){
         public StaxWriter createStaxWriter(XMLStreamWriter out) throws XMLStreamException { 
             return createStaxWriter(out, false); 
         }
@@ -61,7 +62,7 @@ public class Main extends javax.swing.JFrame {
         String path = System.getProperty("jna.library.path");
         String sep = System.getProperty("file.separator");
         String libFolder = System.getProperty("os.name") + "_" + System.getProperty("os.arch");
-        
+
         if(path == null){
             throw new Exception("jna.library.path is empty!");
         }
@@ -130,7 +131,7 @@ public class Main extends javax.swing.JFrame {
         duration = new BigInteger(info.get("Duration"));
         
         String microduration;
-        microduration = String.valueOf(duration.multiply(new BigInteger("10000000")));
+        microduration = String.valueOf(duration.multiply(new BigInteger("10000")));
         
         info.close();
         info.dispose();
@@ -275,6 +276,7 @@ public class Main extends javax.swing.JFrame {
         JFileChooser fc;
         CinegyItem cinegyItem;
         File file;
+        String xml;
         int rowCount = playlistTableModel.getRowCount();
         int columnCount = playlistTableModel.getColumnCount();
         int row, saver;
@@ -328,15 +330,23 @@ public class Main extends javax.swing.JFrame {
             cinegy.BatchIngestList.addItem(cinegyItem);
         }
 
-        String xml = xstream.toXML(cinegy);
+        xml = xstream.toXML(cinegy);
         
         try {
-            FileUtils.writeStringToFile(file, xml);
+            // Fix xml
+            CharSequence oldOpenStr = "<CinegyItem><CinegyItem>", newOpenStr = "<CinegyItem>";
+            CharSequence oldCloseStr = "</CinegyItem></CinegyItem>", newCloseStr = "</CinegyItem>";
+            
+            FileUtils.writeStringToFile(file, xml
+                    .replace(oldOpenStr, newOpenStr)
+                    .replace(oldCloseStr, newCloseStr));
+            
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         creatPlaylistButton.setEnabled(true);
+        xml = null;
     }//GEN-LAST:event_creatPlaylistButtonActionPerformed
 
     private void cleanupButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cleanupButtonActionPerformed
