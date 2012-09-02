@@ -73,6 +73,7 @@ public class TVFormat extends javax.swing.JFrame {
         format14Button = new javax.swing.JRadioButton();
         format15Button = new javax.swing.JRadioButton();
 
+        setAlwaysOnTop(true);
         setBounds(new java.awt.Rectangle(0, 0, 0, 0));
         setResizable(false);
         setType(java.awt.Window.Type.POPUP);

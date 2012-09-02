@@ -29,16 +29,24 @@
                   <Component id="jSeparator1" alignment="1" max="32767" attributes="0"/>
                   <Group type="102" alignment="1" attributes="0">
                       <Component id="cleanupButton" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="249" max="32767" attributes="0"/>
+                      <EmptySpace type="unrelated" max="32767" attributes="0"/>
+                      <Component id="progress" min="-2" pref="98" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="currentFile" min="-2" pref="98" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="dropVideoNotify" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="creatPlaylistButton" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="eventsButton" min="-2" pref="116" max="-2" attributes="0"/>
                   </Group>
                   <Component id="playlistTableScrollPane" alignment="0" max="32767" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="TVFormatButton" min="-2" pref="150" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="TVFormatLabel" min="-2" pref="112" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="prefixNameByFormat" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
                       <Component id="removeFromPlaylistButton" min="-2" pref="224" max="-2" attributes="0"/>
                   </Group>
@@ -55,16 +63,22 @@
                   <Component id="TVFormatButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="TVFormatLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="removeFromPlaylistButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="prefixNameByFormat" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="playlistTableScrollPane" pref="436" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jSeparator1" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="creatPlaylistButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="dropVideoNotify" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="cleanupButton" alignment="3" min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="creatPlaylistButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="dropVideoNotify" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="cleanupButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="progress" max="32767" attributes="0"/>
+                      <Component id="eventsButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="currentFile" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -138,6 +152,26 @@
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_AddingCodePre" type="java.lang.String" value="removeFromPlaylistButton.setEnabled(false);"/>
       </AuxValues>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="prefixNameByFormat">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x424;&#x43e;&#x440;&#x43c;&#x430;&#x442; &#x432; &#x43d;&#x430;&#x437;&#x432;&#x430;&#x43d;&#x438;&#x438; &#x440;&#x43e;&#x43b;&#x430;"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="prefixNameByFormatActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JProgressBar" name="progress">
+    </Component>
+    <Component class="javax.swing.JLabel" name="currentFile">
+    </Component>
+    <Component class="javax.swing.JButton" name="eventsButton">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x421;&#x43e;&#x431;&#x44b;&#x442;&#x438;&#x44f;"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="eventsButtonActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

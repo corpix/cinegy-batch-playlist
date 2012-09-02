@@ -16,7 +16,7 @@ public class BatchIngestList {
     public int Silent = 0;
     public int NoTapeDlg = 0;
     protected String CapturerID = "Video File Ingestor : ";
-    public String ListName = "%D %N";
+    //public String ListName = "";
     public int TV_Format;
     private List CinegyItem = new ArrayList();
     
