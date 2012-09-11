@@ -83,7 +83,8 @@ public class TVFormat extends javax.swing.JFrame {
             }
         });
 
-        okButton.setBackground(new java.awt.Color(137, 206, 64));
+        okButton.setBackground(new java.awt.Color(0, 0, 0));
+        okButton.setForeground(new java.awt.Color(255, 255, 255));
         okButton.setText("Применить");
         okButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

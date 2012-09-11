@@ -10,10 +10,16 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -31,6 +37,7 @@ public class Main extends javax.swing.JFrame {
     private DefaultTableModel playlistTableModel;
     public TVFormat TVFormatInstance;
     private Pair<Integer, String> currentTVFormat;
+    private List<Videos<String, String, Integer, BigInteger>> videos = new ArrayList<Videos<String, String, Integer, BigInteger>>();
     private Boolean hasDropTarget = false;
     private MediaInfo mediaInfoInstance;
     private Events events;
@@ -44,8 +51,7 @@ public class Main extends javax.swing.JFrame {
     
     /** Creates new form Main */
     public Main() throws Exception {
-        setJnaLibraryPath();
-        
+        setJnaLibraryPath(); // Must be first!
         mediaInfoInstance = new MediaInfo();
         
         xstream.alias("Cinegy", Cinegy.class);
@@ -60,8 +66,6 @@ public class Main extends javax.swing.JFrame {
         );
 
         initComponents(); // Requires playlistTableModel to be defined
-        progress.setVisible(false);
-        progress.setMinimum(0);
 
         creatPlaylistButton.setEnabled(false);
         TVFormatInstance = TVFormat.getInstance(this);
@@ -89,9 +93,6 @@ public class Main extends javax.swing.JFrame {
         playlistTableScrollPane.setDropTarget(new DropTarget(){
             @Override
             public synchronized void drop(DropTargetDropEvent dtde) {
-                progress.setVisible(true);
-                progress.setValue(0);
-
                 dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
                 Transferable t = dtde.getTransferable();
                 List fileList = null;
@@ -109,11 +110,9 @@ public class Main extends javax.swing.JFrame {
                 
                 try {
                     int listSize = fileList.size();
-                    progress.setMaximum(listSize);
                     
                     for (int i = 0; i < listSize; i++){
                         f = (File)fileList.get(i);
-                        currentFile.setText(f.getName());
                         absolutePath = f.getAbsolutePath();
                         videoData = getVideoData(absolutePath);
                         if(videoData != null) {
@@ -121,16 +120,11 @@ public class Main extends javax.swing.JFrame {
                         } else {
                             events.addEvent("Error", "Cant get video data for " + absolutePath);
                         }
-                        progress.setValue(i);
                     }
 
                     creatPlaylistButton.setEnabled(true);
                 } catch (Exception ex) {
                     Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-                } finally {
-                    currentFile.setText("");
-                    progress.setValue(100);
-                    progress.setVisible(false);
                 }
             }
         });
@@ -148,19 +142,19 @@ public class Main extends javax.swing.JFrame {
         try {
             file = new File(path);
 
-            currentFile.setText(file.getName());
             mediaInfoInstance.open(file);
             format = mediaInfoInstance.get("Format");
             bitRate = Float.parseFloat(mediaInfoInstance.get("BitRate")) / 1000000;
             frameRate = mediaInfoInstance.get("FrameRate");
 
-    //        System.out.print(mediaInfoInstance.get("ScanType") + "\n");
-    //        System.out.print(mediaInfoInstance.get("Width") + "\n");
-    //        System.out.print(mediaInfoInstance.get("Height") + "\n");
             aspectRatio = Float.parseFloat(mediaInfoInstance.get("AspectRatio"));
             duration = new BigInteger(mediaInfoInstance.get("Duration"));
             microduration = String.valueOf(duration.multiply(new BigInteger("10000")));
             mediaInfoInstance.close();
+            
+            // FIXME: new storage
+            
+            videos.add(new Videos(path, "%D %N", currentTVFormat.getSecond(), microduration));
 
             return new Object[]{ path, format, bitRate, frameRate, aspectRatio, microduration, currentTVFormat.getSecond() };
         } catch(Throwable ex) {
@@ -213,8 +207,6 @@ public class Main extends javax.swing.JFrame {
         TVFormatLabel = new javax.swing.JLabel();
         removeFromPlaylistButton = new javax.swing.JButton();
         prefixNameByFormat = new javax.swing.JCheckBox();
-        progress = new javax.swing.JProgressBar();
-        currentFile = new javax.swing.JLabel();
         eventsButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -285,11 +277,7 @@ public class Main extends javax.swing.JFrame {
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, jSeparator1)
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                         .add(cleanupButton)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .add(progress, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 98, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(currentFile, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 98, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .add(dropVideoNotify)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(creatPlaylistButton)
@@ -302,7 +290,7 @@ public class Main extends javax.swing.JFrame {
                         .add(TVFormatLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 112, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
                         .add(prefixNameByFormat)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 101, Short.MAX_VALUE)
                         .add(removeFromPlaylistButton, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 224, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
@@ -320,14 +308,11 @@ public class Main extends javax.swing.JFrame {
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jSeparator1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                        .add(creatPlaylistButton)
-                        .add(dropVideoNotify)
-                        .add(cleanupButton)
-                        .add(progress, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .add(eventsButton))
-                    .add(currentFile, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(creatPlaylistButton)
+                    .add(dropVideoNotify)
+                    .add(cleanupButton)
+                    .add(eventsButton))
                 .addContainerGap())
         );
 
@@ -343,8 +328,6 @@ public class Main extends javax.swing.JFrame {
         int columnCount = playlistTableModel.getColumnCount();
         int row, saver;
         
-        creatPlaylistButton.setEnabled(false);
-        
         // Save dialog ->
         fc = new JFileChooser(System.getProperty("user.home"));
         fc.setSelectedFile(new File("batch.cbi"));
@@ -356,14 +339,13 @@ public class Main extends javax.swing.JFrame {
             return;
         }
         
+        creatPlaylistButton.setEnabled(false);
         file = fc.getSelectedFile();
         // <- Save dialog
         
         Cinegy cinegy = new Cinegy();
         cinegy.BatchIngestList = new BatchIngestList();
         cinegy.BatchIngestList.TV_Format = currentTVFormat.getFirst();
-
-        
         
         
         for (row = 0; row < rowCount; row++){
@@ -402,20 +384,26 @@ public class Main extends javax.swing.JFrame {
             CharSequence oldOpenStr = "<CinegyItem><CinegyItem>", newOpenStr = "<CinegyItem>";
             CharSequence oldCloseStr = "</CinegyItem></CinegyItem>", newCloseStr = "</CinegyItem>";
             
-            FileUtils.writeStringToFile(file, xml
-                    .replace(oldOpenStr, newOpenStr)
-                    .replace(oldCloseStr, newCloseStr));
+            Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
+            xml = xml.replace(oldOpenStr, newOpenStr).replace(oldCloseStr, newCloseStr);
+            try {
+                out.write(xml);
+            } finally {
+                out.close();
+            }
             
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            xml = null;
         }
         
         creatPlaylistButton.setEnabled(true);
-        xml = null;
     }//GEN-LAST:event_creatPlaylistButtonActionPerformed
 
     private void cleanupButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cleanupButtonActionPerformed
         creatPlaylistButton.setEnabled(false);
+        videos.clear();
         int rows = playlistTableModel.getRowCount() - 1;
         while(rows >= 0) {
             playlistTableModel.removeRow(rows--);
@@ -498,14 +486,12 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JLabel TVFormatLabel;
     private javax.swing.JButton cleanupButton;
     private javax.swing.JButton creatPlaylistButton;
-    private javax.swing.JLabel currentFile;
     private javax.swing.JLabel dropVideoNotify;
     private javax.swing.JButton eventsButton;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JTable playlistTable;
     private javax.swing.JScrollPane playlistTableScrollPane;
     private javax.swing.JCheckBox prefixNameByFormat;
-    private javax.swing.JProgressBar progress;
     private javax.swing.JButton removeFromPlaylistButton;
     // End of variables declaration//GEN-END:variables
     
