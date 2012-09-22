@@ -4,6 +4,7 @@ import com.thoughtworks.xstream.*;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
 import com.thoughtworks.xstream.io.xml.StaxWriter;
 import com.thoughtworks.xstream.io.xml.XmlFriendlyReplacer;
+import java.awt.Color;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -206,8 +207,10 @@ public class Main extends javax.swing.JFrame {
         TVFormatButton = new javax.swing.JButton();
         TVFormatLabel = new javax.swing.JLabel();
         removeFromPlaylistButton = new javax.swing.JButton();
-        prefixNameByFormat = new javax.swing.JCheckBox();
         eventsButton = new javax.swing.JButton();
+        joinInRoll = new javax.swing.JCheckBox();
+        programCodeTextField = new javax.swing.JTextField();
+        programCodeTextField.setEnabled(joinInRoll.isSelected());
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Batch ingest playlist creator");
@@ -251,17 +254,33 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
-        prefixNameByFormat.setText("Формат в названии рола");
-        prefixNameByFormat.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                prefixNameByFormatActionPerformed(evt);
-            }
-        });
-
         eventsButton.setText("События");
         eventsButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 eventsButtonActionPerformed(evt);
+            }
+        });
+
+        joinInRoll.setText("Соединить в roll");
+        joinInRoll.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                joinInRollStateChanged(evt);
+            }
+        });
+        joinInRoll.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                joinInRollActionPerformed(evt);
+            }
+        });
+
+        programCodeTextField.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                programCodeTextFieldMouseClicked(evt);
+            }
+        });
+        programCodeTextField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                programCodeTextFieldKeyPressed(evt);
             }
         });
 
@@ -277,7 +296,7 @@ public class Main extends javax.swing.JFrame {
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, jSeparator1)
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                         .add(cleanupButton)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 220, Short.MAX_VALUE)
                         .add(dropVideoNotify)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(creatPlaylistButton)
@@ -289,8 +308,10 @@ public class Main extends javax.swing.JFrame {
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(TVFormatLabel, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 112, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
-                        .add(prefixNameByFormat)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 101, Short.MAX_VALUE)
+                        .add(joinInRoll)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(programCodeTextField)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
                         .add(removeFromPlaylistButton, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 224, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
@@ -302,7 +323,8 @@ public class Main extends javax.swing.JFrame {
                     .add(TVFormatButton)
                     .add(TVFormatLabel)
                     .add(removeFromPlaylistButton)
-                    .add(prefixNameByFormat))
+                    .add(joinInRoll)
+                    .add(programCodeTextField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(playlistTableScrollPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 436, Short.MAX_VALUE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
@@ -320,6 +342,13 @@ public class Main extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void creatPlaylistButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_creatPlaylistButtonActionPerformed
+        if(joinInRoll.isSelected()) {
+            if(programCodeTextField.getText().length() == 0) {
+                programCodeTextField.setBackground(Color.red);
+                return;
+            }
+        }
+        
         JFileChooser fc;
         CinegyItem cinegyItem;
         File file;
@@ -364,10 +393,12 @@ public class Main extends javax.swing.JFrame {
                         String value = (String)playlistTableModel.getValueAt(row, column);
                         Pair<Integer, JRadioButton> pair = (Pair<Integer, JRadioButton>)TVFormatInstance.formats.get(value);
                         cinegyItem.TV_Format = pair.getFirst();
-                        cinegyItem.Channel = "1|0|3|" + cinegyItem.TV_Format + "|" + cinegyItem.Source + "|0||";
-                        if(prefixNameByFormat.isSelected()) {
-                            cinegyItem.Name = value + "_" + cinegyItem.Name;
+                        if (joinInRoll.isSelected()) {
+                            cinegyItem.ProgramCode = programCodeTextField.getText();
+                            cinegyItem.IgnoreMediaIdDiff = 1;
                         }
+                        
+                        cinegyItem.Channel = "1|0|3|" + cinegyItem.TV_Format + "|" + cinegyItem.Source + "|0||";
                         cinegyItem.MediaID = cinegyItem.Channel;
                         break;
                     }
@@ -430,13 +461,25 @@ public class Main extends javax.swing.JFrame {
         removeFromPlaylistButton.setEnabled(false);
     }//GEN-LAST:event_removeFromPlaylistButtonActionPerformed
 
-    private void prefixNameByFormatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prefixNameByFormatActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_prefixNameByFormatActionPerformed
-
     private void eventsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eventsButtonActionPerformed
         events.setVisible(true);
     }//GEN-LAST:event_eventsButtonActionPerformed
+
+    private void joinInRollActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_joinInRollActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_joinInRollActionPerformed
+
+    private void joinInRollStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_joinInRollStateChanged
+        programCodeTextField.setEnabled(joinInRoll.isSelected());
+    }//GEN-LAST:event_joinInRollStateChanged
+
+    private void programCodeTextFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_programCodeTextFieldMouseClicked
+        programCodeTextField.setBackground(Color.white);
+    }//GEN-LAST:event_programCodeTextFieldMouseClicked
+
+    private void programCodeTextFieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_programCodeTextFieldKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_programCodeTextFieldKeyPressed
     
     /**
      * @param args the command line arguments
@@ -489,9 +532,10 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JLabel dropVideoNotify;
     private javax.swing.JButton eventsButton;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JCheckBox joinInRoll;
     private javax.swing.JTable playlistTable;
     private javax.swing.JScrollPane playlistTableScrollPane;
-    private javax.swing.JCheckBox prefixNameByFormat;
+    private javax.swing.JTextField programCodeTextField;
     private javax.swing.JButton removeFromPlaylistButton;
     // End of variables declaration//GEN-END:variables
     
